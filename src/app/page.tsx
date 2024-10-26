@@ -1,101 +1,126 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from 'react';
+import { alunos, Disciplina } from '../data/alunos';
+
+function calcularMediaComRegraDeNegocio(disciplina: Disciplina) {
+
+  // Ordena as notas dos CPs e descarta a menor
+  const cps = [disciplina.cp1.nota, disciplina.cp2.nota, disciplina.cp3.nota];
+  cps.sort((a, b) => a - b); // Ordena em ordem crescente
+  const mediaCP = Math.round(((cps[1] + cps[2]) / 2) * 0.2);
+
+  // Nota de GS com peso de 60%
+  const mediaGS = Math.round(disciplina.gs.nota * 0.6);
+
+  // Média das duas notas de CS com peso de 20%
+  const mediaCS = Math.round(((disciplina.cs1.nota + disciplina.cs2.nota) / 2) * 0.2);
+
+  // Soma das notas ponderadas
+  return (mediaCP + mediaGS + mediaCS);
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  
+  const [selectedAluno, setSelectedAluno] = useState<typeof alunos[0] | null>(null);
+  const [showDisciplinas, setShowDisciplinas] = useState(false); // Estado para mostrar/esconder disciplinas
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const openBoletim = (aluno: typeof alunos[0]) => {
+    setSelectedAluno(aluno);
+  };
+
+  const closeBoletim = () => {
+    setSelectedAluno(null);
+  };
+
+  return (
+    <div className="container mx-auto p-6 min-h-screen flex flex-col home-background"> {/* Adicionando classe para fundo */}
+      <h1 className="text-4xl font-bold mb-4 text-center" style={{ color: 'white', textShadow: '2px 2px 4px rgba(255, 0, 0, 0.7)' }}>
+          PORTFOLIO
+      </h1>
+
+      <h2 
+        className="disciplinas-titulo mb-4 cursor-pointer" 
+        onClick={() => setShowDisciplinas(!showDisciplinas)} // Toggle para mostrar/esconder disciplinas
+      >
+        DISCIPLINAS
+      </h2>
+      {showDisciplinas && (
+        <ul className="list-disc pl-6 mb-6">
+          {alunos[0].disciplinas.map((disciplina, index) => (
+            <li key={index} className="text-lg">{disciplina.nome}</li>
+          ))}
+        </ul>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-auto">
+        {alunos.map((aluno) => (
+          <div key={aluno.id} className="card-aluno">
+            <img src={aluno.imagem} alt={aluno.nome} className="h-32 w-32 object-cover rounded-full mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{aluno.nome}</h2>
+            <p className="mb-4">
+              <strong>Resumo das Notas:</strong><br />
+              Média Ponderada: {aluno.disciplinas ? calcularMediaComRegraDeNegocio(aluno.disciplinas[0]) : "N/A"}
+            </p>
+            <button
+              onClick={() => openBoletim(aluno)}
+              className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+            >
+              Ver Boletim
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {selectedAluno && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 w-full max-w-4xl">
+            <button onClick={closeBoletim} className="text-gray-600 hover:text-gray-800 float-right">
+              X
+            </button>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              Boletim de {selectedAluno.nome}
+            </h2>
+            <table className="w-full text-left">
+              <thead>
+                <tr>
+                  <th className="py-2 px-4 border-b">Disciplina</th>
+                  <th className="py-2 px-4 border-b">CP</th>
+                  <th className="py-2 px-4 border-b">GS</th>
+                  <th className="py-2 px-4 border-b">CS</th>
+                  <th className="py-2 px-4 border-b">FA</th>
+                  <th className="py-2 px-4 border-b">MD</th>
+                  <th className="py-2 px-4 border-b">PR (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedAluno.disciplinas.map((disciplina, index) => (
+                  <tr key={index} className="hover:bg-gray-100">
+                    <td className="py-2 px-4 border-b">{disciplina.nome}</td>
+                    <td className="py-2 px-4 border-b text-center">
+                      {Math.round(disciplina.cp1.nota)}, {Math.round(disciplina.cp2.nota)}, {Math.round(disciplina.cp3.nota)}
+                    </td>
+                    <td className="py-2 px-4 border-b text-center">
+                      {Math.round(disciplina.gs.nota)} <span className="text-sm text-gray-500">({disciplina.gs.data})</span>
+                    </td>
+                    <td className="py-2 px-4 border-b text-center">
+                      {Math.round(disciplina.cs1.nota)}, {Math.round(disciplina.cs2.nota)}
+                    </td>
+                    <td className="py-2 px-4 border-b text-center">{disciplina.fa}</td>
+                    <td className="py-2 px-4 border-b text-center">{Math.round(disciplina.md)}</td>
+                    <td className="py-2 px-4 border-b text-center">{Math.round(disciplina.pr)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-4 text-center">
+              <button onClick={closeBoletim} className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">
+                Fechar
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
 }

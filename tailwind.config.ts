@@ -1,3 +1,5 @@
+// tailwind.config.js
+
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -9,11 +11,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "var(--background)", // Usando o gradiente de fundo
+        foreground: "var(--foreground)", 
+        primary: "var(--primary)",
+        secondary: "var(--secondary)",
       },
     },
   },
   plugins: [],
 };
+
 export default config;
